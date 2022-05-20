@@ -13,9 +13,14 @@ body {
     background-color: var(--background-color)
 }
 
-a,
+a {
+    color: cyan;
+    text-decoration: none;
+}
+
 a:hover {
-    color: cyan
+    color: cyan;
+    text-decoration: underline !important;
 }
 
 p {
@@ -81,8 +86,6 @@ p {
     font-weight: bold;
 }
 
-.item-card__property-group__value {}
-
 .item-card__property-group__recipe-grid {
     display: inline-grid;
     grid-template-columns: repeat(3, 2rem);
@@ -112,11 +115,8 @@ p {
     margin-bottom: 0px;
 }
 
-.item-card__property-group__recipe-key__warning {
-    font-weight: bold;
-    border-left: 2px solid yellow;
-    padding-left: 8px;
-    color: yellow;
+.item-card__property-group__recipe-key>p>span {
+    color: #ffffff50;
 }
 
 .back-to-top-button__wrapper {

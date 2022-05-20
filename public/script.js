@@ -1,197 +1,104 @@
-const formNode = (tagName, text = "", attributes = {}, childNodes = []) => {
-    let node = document.createElement(tagName);
-    if (text !== "") {
-        node.appendChild(document.createTextNode(text));
-    }
-    for (const attribute in attributes) {
-        node.setAttribute(attribute, attributes[attribute]);
-    }
-    for (const childNode of childNodes) {
-        node.appendChild(childNode);
-    }
-
-    return node;
+const toTitleCase = (string) => {
+    return string.trim().toLowerCase().replaceAll(/\w\S*/g, (w) => (w.replace(/^\w/g, (c) => c.toUpperCase())));
 }
 
-const formDiv = (attributes = {}, childNodes = []) => {
-    let div = formNode("div", "", attributes, childNodes);
-
-    return div;
+const removeColorSymbols = (string) => {
+    return string.replaceAll(/§[0-9a-f]/g, "");
 }
 
-const newChildToNode = (node, childName, text = "", attributes = {}) => {
-    const child = formNode(childName, text, attributes)
-    node.appendChild(child)
-}
-
-const newNodeToBody = (tagName, text = "", attributes = {}) => {
-    newChildToNode(document.getElementById("body"), tagName, text, attributes);
-}
-
-const addChildToNode = (node, child) => {
-    node.appendChild(child)
-}
-
-const addNodeToBody = (node) => {
-    addChildToNode(document.getElementById("body"), node);
-}
-
-const formNode__propertyGroupRowKeyValue = (key, value) => {
-    return formDiv({
-            "class": "item-card__property-group__row"
-        },
-        [
-            formNode(
-                "p", key, {
-                    "class": "item-card__property-group__key"
-                }
-            ),
-            formNode(
-                "p", value, {
-                    "class": "item-card__property-group__value"
-                }
-            )
-        ]
-    );
-}
-
-const formNode__propertyGroupRowKeyValueLink = (key, value) => {
-    return formDiv({
-            "class": "item-card__property-group__row"
-        },
-        [
-            formNode(
-                "p", key, {
-                    "class": "item-card__property-group__key"
-                }
-            ),
-            formNode(
-                "a", value ? value : "", {
-                    "class": "item-card__property-group__value",
-                    "href": value
-                }
-            )
-        ]
-    );
-}
-
-
-const formDiv__research = (item) => {
-    if ("research" in item) {
-        return formDiv({
-                "class": "item-card__property-group"
-            },
-            [
-                formNode(
-                    "h3", "[ Research ]", {
-                        "class": "item-card__property-group__title"
-                    }
-                ),
-                formNode__propertyGroupRowKeyValue("Key:", item.research.key),
-                formNode__propertyGroupRowKeyValue("ID:", item.research.id),
-                formNode__propertyGroupRowKeyValue("Name:", item.research.name),
-                formNode__propertyGroupRowKeyValue("Cost:", item.research.cost),
-            ]
-        )
+const getIngredientName = (ingredient) => {
+    // Prerequisite: 'item' is not null
+    let name = "";
+    if (!("meta" in ingredient)) {
+        return `[${toTitleCase(ingredient.type.replaceAll("_", " "))}]`;
     } else {
-        return formDiv({
-                "class": "item-card__property-group"
-            },
-            [
-                formNode(
-                    "h3", "[ Research ]", {
-                        "class": "item-card__property-group__title"
-                    }
-                ),
-                formNode(
-                    "p", "Couldn't find research for this item."
-                )
-            ]
-        )
+        return removeColorSymbols(ingredient.meta.display_name);
     }
 }
 
 const recipeToKeys = (recipe) => {
-    let ingredientsSet = {};
+    let ingredientsSet = new Object();
+    let num = 1;
 
     recipe.forEach((ingredient) => {
-        if (!((ingredient === null) || (ingredient.type in ingredientsSet))) {
-            ingredientsSet[ingredient.type] = {
-                "key": Object.keys(ingredientsSet).length + 1,
+        if (!((ingredient === null) || (getIngredientName(ingredient) in ingredientsSet))) {
+            ingredientsSet[getIngredientName(ingredient)] = {
+                "key": num,
                 "amount": ingredient.amount
-            }
+            };
+            num++;
         }
     })
     return ingredientsSet
 }
 
-const formNode__propertyGroupRecipe = (recipe) => {
+const itemCardKeyValuePair = (key, value, isLink) => {
+    let _valueElement = ""
+    if (!isLink) {
+        _valueElement = `<p class="item-card__property-group__value">${value}</p>`
+    } else {
+        _valueElement = `<a class="item-card__property-group__value" href="${value}">${value}</a>`
+    }
+    return `
+        <div class="item-card__property-group__row">
+            <p class="item-card__property-group__key">${key}</p>
+            ${_valueElement}
+        </div>
+    `
+}
+
+const itemCardResearchGroup = (item) => {
+    if ("research" in item) {
+        return `
+            ${itemCardKeyValuePair("Key:", item.research.key)}
+            ${itemCardKeyValuePair("ID:", item.research.id)}
+            ${itemCardKeyValuePair("Name:", item.research.name)}
+            ${itemCardKeyValuePair("Cost:", item.research.cost)}
+        `
+    } else {
+        return `
+            <p>Couldn't find research for this item.</p>
+        `
+    }
+}
+
+const itemCardRecipeGrid = (recipe) => {
     const recipeKeys = recipeToKeys(recipe);
-    let ingredients = [];
+    let recipeGridItems = "";
 
     for (let i = 0; i < 9; i++) {
         let ingredientName = ""
         if (recipe[i] !== null) {
-            ingredientName = recipeKeys[recipe[i].type].key
+            ingredientName = recipeKeys[getIngredientName(recipe[i])].key
         }
-        ingredients.push(
-            formDiv({
-                    "class": "item-card__property-group__recipe-grid__item"
-                },
-                [
-                    formNode(
-                        "p", ingredientName
-                    )
-                ]
-            )
-        )
+        recipeGridItems += `
+            <div class="item-card__property-group__recipe-grid__item">
+                <p>${ingredientName}</p>
+            </div>
+        `;
     }
 
-
-    let keyStrings = [
-        formNode(
-            "p", "Recipe Key:", {
-                "class": "item-card__property-group__recipe-key__title"
-            }
-        )
-    ];
-    const multipleItemInStackWarning = false;
+    let keyStrings = `
+        <p class="item-card__property-group__recipe-key__title">Recipe Key:</p>
+    `;
     for (const ingredient in recipeKeys) {
-        if (recipeKeys[ingredient].amonut > 1) {
-            multipleItemInStackWarning = true;
-        }
-        keyStrings.push(
-            formNode(
-                "p", `${recipeKeys[ingredient].key}: ${ingredient}`
-            )
-        )
-    }
-    if (multipleItemInStackWarning) {
-        keyStrings.push(
-            formNode(
-                "p", "Warning: some of the items in this recipe require more than one item per slot. This site doesn't take multiple items in a stack into account just yet.", {
-                    "class": "item-card__property-group__recipe-key__warning"
-                }
-            )
-        )
+        keyStrings += `
+            <p>${recipeKeys[ingredient].key}: <span>${recipeKeys[ingredient].amount}x</span> ${ingredient}</p>
+        `;
     }
 
-    return formDiv({},
-        [
-            formDiv({
-                    "class": "item-card__property-group__recipe-grid"
-                },
-                ingredients
-            ),
-            formDiv({
-                    "class": "item-card__property-group__recipe-key"
-                },
-                keyStrings
-            )
-        ]
-    )
-
+    return `
+        <div>
+            <div class="item-card__property-group__recipe-grid">
+                ${recipeGridItems}
+            </div>
+            <div class="item-card__property-group__recipe-key">
+                ${keyStrings}
+            </div>
+        </div>
+    `;
 }
+
 
 let itemsList = [];
 fetch("https://raw.githubusercontent.com/TheSilentPro/SlimefunScrapper/master/items.json")
@@ -201,98 +108,59 @@ fetch("https://raw.githubusercontent.com/TheSilentPro/SlimefunScrapper/master/it
     .then((json => {
 
         let maxItems = json.length;
+        maxItems = 5;
         for (let i = 0; i < maxItems; i++) {
             const item = json[i];
-            itemsList.push(item.id)
+            itemsList.push(removeColorSymbols(item.name).toLowerCase())
 
-            let table = (
-                formDiv({
-                        "class": "item-card",
-                        "id": item.id
-                    },
-                    [
-                        formNode(
-                            "h2", item.name.replace(/§[0-9a-f]/g, ""), {
-                                "class": "item-card__title"
-                            }
-                        ),
-                        formDiv({
-                                "class": "item-card__property-group"
-                            },
-                            [
-                                formNode(
-                                    "h3", "[ Information ]", {
-                                        "class": "item-card__property-group__title"
-                                    }
-                                ),
-                                formNode__propertyGroupRowKeyValue("ID:", item.id),
-                                formNode__propertyGroupRowKeyValue("Name:", item.name),
-                                formNode__propertyGroupRowKeyValueLink("Wiki:", item.wiki),
-                                formNode__propertyGroupRowKeyValue("Enchantable:", item.enchantable),
-                                formNode__propertyGroupRowKeyValue("Disenchantable:", item.disenchantable),
-                                formNode__propertyGroupRowKeyValue("Workbench:", item.workbench),
-                                formNode__propertyGroupRowKeyValue("Placeable:", item.placeable)
-                            ]
-                        ),
-                        formDiv__research(item),
-                        formDiv({
-                                "class": "item-card__property-group"
-                            },
-                            [
-                                formNode(
-                                    "h3", "[ Group ]", {
-                                        "class": "item-card__property-group__title"
-                                    }
-                                ),
-                                formNode__propertyGroupRowKeyValue("Key:", item.group.key),
-                                formNode__propertyGroupRowKeyValue("Name:", item.group.name),
-                                formNode__propertyGroupRowKeyValue("Tier:", item.group.tier)
-                            ]
-                        ),
-                        formDiv({
-                                "class": "item-card__property-group"
-                            },
-                            [
-                                formNode(
-                                    "h3", "[ Addon ]", {
-                                        "class": "item-card__property-group__title"
-                                    }
-                                ),
-                                formNode__propertyGroupRowKeyValue("Name:", item.addon.name),
-                                formNode__propertyGroupRowKeyValue("Version:", item.addon.version),
-                                formNode__propertyGroupRowKeyValueLink("Bug Tracker:", item.addon.bug_tracker),
-                            ]
-                        ),
-                        formDiv({
-                                "class": "item-card__property-group"
-                            },
-                            [
-                                formNode(
-                                    "h3", "[ Recipe ]", {
-                                        "class": "item-card__property-group__title"
-                                    }
-                                ),
-                                formNode__propertyGroupRecipe(item.recipe.ingredients),
-                                formNode__propertyGroupRowKeyValue("Type:", item.recipe_type.key),
-                                formNode__propertyGroupRowKeyValue("Produces:", item.recipe.output.amount),
-                            ]
-                        ),
-                    ]
-                )
-            );
-
-            addNodeToBody(table);
+            document.getElementById("body").insertAdjacentHTML("beforeend", `
+                <div class="item-card" id="${removeColorSymbols(item.name).toLowerCase()}">
+                    <h2 class="item-card__title">${removeColorSymbols(item.name)}</h2>
+                    <div class="item-card__property-group">
+                        <h3 class="item-card__property-group__title">[ Information ]</h3>
+                        ${itemCardKeyValuePair("ID:", item.id)}
+                        ${itemCardKeyValuePair("Name:", item.name)}
+                        ${itemCardKeyValuePair("Wiki:", item.wiki, true)}
+                        ${itemCardKeyValuePair("Enchantable:", item.enchantable)}
+                        ${itemCardKeyValuePair("Disenchantable:", item.disenchantable)}
+                        ${itemCardKeyValuePair("Workbench:", item.workbench)}
+                        ${itemCardKeyValuePair("Placeable:", item.placeable)}
+                    </div>
+                    <div class="item-card__property-group">
+                        <h3 class="item-card__property-group__title">[ Research ]</h3>
+                        ${itemCardResearchGroup(item)}
+                    </div>
+                    <div class="item-card__property-group">
+                        <h3 class="item-card__property-group__title">[ Group ]</h3>
+                        ${itemCardKeyValuePair("Key:", item.group.key)}
+                        ${itemCardKeyValuePair("Name:", item.group.name)}
+                        ${itemCardKeyValuePair("Tier:", item.group.tier)}
+                    </div>
+                    <div class="item-card__property-group">
+                        <h3 class="item-card__property-group__title">[ Addon ]</h3>
+                        ${itemCardKeyValuePair("Name:", item.addon.name)}
+                        ${itemCardKeyValuePair("Version:", item.addon.version)}
+                        ${itemCardKeyValuePair("Bug Tracker:", item.addon.bug_tracker, true)}
+                    </div>
+                    <div class="item-card__property-group">
+                        <h3 class="item-card__property-group__title">[ Recipe ]</h3>
+                        ${itemCardRecipeGrid(item.recipe.ingredients)}
+                        ${itemCardKeyValuePair("Type:", item.recipe_type.key)}
+                        ${itemCardKeyValuePair("Produces:", item.recipe.output.amount)}
+                    </div>
+                </div>
+            `)
         }
     }));
 
 document.getElementById("search-bar").addEventListener("submit", (event) => {
     event.preventDefault();
-    const itemName = event.target.children[0].value.toUpperCase().replaceAll(" ", "_");
+    const itemName = event.target.children[0].value.toLowerCase();
     console.log(itemName);
     if (itemsList.includes(itemName)) {
         document.getElementById(itemName).scrollIntoView();
     } else {
-        alert(`Couldn't find a Slimefun item with the id "${event.target.children[0].value}"`)
+        alert(`Couldn't find a Slimefun item with the name "${event.target.children[0].value}"`)
     }
 })
 

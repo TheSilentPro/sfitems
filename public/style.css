@@ -86,6 +86,10 @@ p {
     font-weight: bold;
 }
 
+.item-card__property-group__value {
+    word-break: break-word;
+}
+
 .item-card__property-group__recipe-grid {
     display: inline-grid;
     grid-template-columns: repeat(3, 2rem);

@@ -1,4 +1,4 @@
 # sfitems
 A list of all Slimefun items, compiled by TheSilentPro <br>
-https://items.pages.dev - Raw JSON <br>
-https://items.pages.dev/view - Prettified view - designed by SchnTgaiSpock
+https://items.pages.dev - Prettified view - designed by SchnTgaiSpock <br>
+https://items.pages.dev/raw - Raw JSON

@@ -108,7 +108,6 @@ fetch("https://raw.githubusercontent.com/TheSilentPro/SlimefunScrapper/master/it
     .then((json => {
 
         let maxItems = json.length;
-        maxItems = 5;
         for (let i = 0; i < maxItems; i++) {
             const item = json[i];
             itemsList.push(removeColorSymbols(item.name).toLowerCase())

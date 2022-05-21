@@ -1,4 +1,4 @@
 # sfitems
-Not done. If you know css/html/javascript feel free to pr changes. <br>
+A list of all Slimefun items, compiled by TheSilentPro <br>
 https://items.pages.dev - Raw JSON <br>
-https://items.pages.dev/view - Simplified view
+https://items.pages.dev/view - Prettified view - designed by SchnTgaiSpock

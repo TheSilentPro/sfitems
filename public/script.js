@@ -9,6 +9,9 @@ const toTitleCase = (string) => {
 }
 
 const removeColorSymbols = (string) => {
+    if (string === undefined) {
+        return "UH OH"
+    }
     return string.replaceAll(formatCodeRegex, "");
 }
 
@@ -22,16 +25,36 @@ const parseColorSymbols = (string) => {
         // A bit complicated, basically it searches for the first
         // format code, and puts the stuff after that into a span
         // with the corresponding classes, recursively
-        const formatCode = string[matchedCodeIndex+1];
+        const formatCode = string[matchedCodeIndex + 1];
         return `${string.substring(0, matchedCodeIndex)}<span class="color-code__${formatCode} color-code">${parseColorSymbols(string.substring(matchedCodeIndex+2))}</span>`
     };
 }
 
+const getPotionName = (potion) => {
+    let extendedOrUpgradedString = ""
+    if (potion.meta.base_potion_data.extended === true) {
+        extendedOrUpgradedString += " II"
+    } else if (potion.meta.base_potion_data.extended === true) {
+        extendedOrUpgradedString += "( Extended)"
+    }
+    return toTitleCase(`[${potion.type.replace("_", " ")} of ${potion.meta.base_potion_data.type}${extendedOrUpgradedString}]`)
+}
+
+
 const getIngredientName = (ingredient) => {
-    // Prerequisite: 'item' is not null
-    let name = "";
+    // Prerequisite: 'ingredient' is not null
     if (!("meta" in ingredient)) {
         return `[${toTitleCase(ingredient.type.replaceAll("_", " "))}]`;
+        // No display name in meta means vanilla item with NBT data
+        // So far, only potions have them. If there are more to be
+        // added int he future, this script will
+        // log a message in console, but won't crash
+    } else if (!("display_name" in ingredient.meta)) {
+        if (ingredient.type === "POTION") {
+            return getPotionName(ingredient);
+        } else {
+            return `[${toTitleCase(ingredient.type.replaceAll("_", " "))}]`;
+        }
     } else {
         return removeColorSymbols(ingredient.meta.display_name);
     }
@@ -171,7 +194,13 @@ fetch("https://raw.githubusercontent.com/TheSilentPro/SlimefunScrapper/master/it
                 </div>
             `)
         }
-    }));
+
+        return maxItems;
+    })).then(
+        (totalItems) => {
+            document.getElementById("total-items").textContent = totalItems;
+        }
+    );
 
 document.getElementById("search-bar").addEventListener("submit", (event) => {
     event.preventDefault();

@@ -1,9 +1,30 @@
+const formatCodeRegex = /§([0-9a-z])/g
+
+const insertAndReplaceAt = (string, replacement, startIndex, endIndex) => {
+    return string.substring(0, startIndex) + replacement + string.substring(endIndex);
+}
+
 const toTitleCase = (string) => {
     return string.trim().toLowerCase().replaceAll(/\w\S*/g, (w) => (w.replace(/^\w/g, (c) => c.toUpperCase())));
 }
 
 const removeColorSymbols = (string) => {
-    return string.replaceAll(/§[0-9a-f]/g, "");
+    return string.replaceAll(formatCodeRegex, "");
+}
+
+// Returns nested spans, with classes for styling
+const parseColorSymbols = (string) => {
+    let matchedCodeIndex = string.search(formatCodeRegex)
+    // Base case: no codes left in the string
+    if (matchedCodeIndex === -1) {
+        return string
+    } else {
+        // A bit complicated, basically it searches for the first
+        // format code, and puts the stuff after that into a span
+        // with the corresponding classes, recursively
+        const formatCode = string[matchedCodeIndex+1];
+        return `${string.substring(0, matchedCodeIndex)}<span class="color-code__${formatCode} color-code">${parseColorSymbols(string.substring(matchedCodeIndex+2))}</span>`
+    };
 }
 
 const getIngredientName = (ingredient) => {
@@ -118,7 +139,7 @@ fetch("https://raw.githubusercontent.com/TheSilentPro/SlimefunScrapper/master/it
                     <div class="item-card__property-group">
                         <h3 class="item-card__property-group__title">[ Information ]</h3>
                         ${itemCardKeyValuePair("ID:", item.id)}
-                        ${itemCardKeyValuePair("Name:", item.name)}
+                        ${itemCardKeyValuePair("Name:", parseColorSymbols(item.name))}
                         ${itemCardKeyValuePair("Wiki:", item.wiki, true)}
                         ${itemCardKeyValuePair("Enchantable:", item.enchantable)}
                         ${itemCardKeyValuePair("Disenchantable:", item.disenchantable)}

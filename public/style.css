@@ -27,6 +27,107 @@ p {
     margin-bottom: 10px;
 }
 
+/* Formatting color codes */
+
+.color-code,
+.color-code__r {
+    font-weight: normal;
+    font-style: normal;
+    text-decoration: none;
+}
+
+.color-code__0 {
+    color: #000000
+}
+
+.color-code__1 {
+    color: #0000aa
+}
+
+.color-code__2 {
+    color: #00aa00
+}
+
+.color-code__3 {
+    color: #00aaaa
+}
+
+.color-code__4 {
+    color: #aa0000
+}
+
+.color-code__5 {
+    color: #aa00aa
+}
+
+.color-code__6 {
+    color: #ffaa00
+}
+
+.color-code__7 {
+    color: #aaaaaa
+}
+
+.color-code__8 {
+    color: #555555
+}
+
+.color-code__9 {
+    color: #5555ff
+}
+
+.color-code__a {
+    color: #55ff55
+}
+
+.color-code__b {
+    color: #55ffff
+}
+
+.color-code__c {
+    color: #ff5555
+}
+
+.color-code__d {
+    color: #ff55ff
+}
+
+.color-code__e {
+    color: #ffff55
+}
+
+.color-code__f {
+    color: #ffffff
+}
+
+.color-code__k {
+    background-color: white;
+}
+
+.color-code__l {
+    font-weight: bold;
+}
+
+/*
+    TODO: figure out a way to be able to put m and n together.
+    Don't know if any items actually have them together though
+*/
+.color-code__m {
+    text-decoration: line-through;
+}
+
+.color-code__n {
+    text-decoration: underline;
+}
+
+.color-code__o {
+    font-style: italic;
+}
+
+.color-code__r {
+    color: white;
+}
+
 .page-header {
     padding: 2.5rem 0;
     margin-bottom: 2.5rem;

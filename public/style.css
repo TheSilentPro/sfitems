@@ -29,7 +29,22 @@ p {
 
 /* Formatting color codes */
 
-.color-code,
+.color-code__0,
+.color-code__1,
+.color-code__2,
+.color-code__3,
+.color-code__4,
+.color-code__5,
+.color-code__6,
+.color-code__7,
+.color-code__8,
+.color-code__9,
+.color-code__a,
+.color-code__b,
+.color-code__c,
+.color-code__d,
+.color-code__e,
+.color-code__f,
 .color-code__r {
     font-weight: normal;
     font-style: normal;
@@ -108,16 +123,18 @@ p {
     font-weight: bold;
 }
 
-/*
-    TODO: figure out a way to be able to put m and n together.
-    Don't know if any items actually have them together though
-*/
 .color-code__m {
     text-decoration: line-through;
 }
 
 .color-code__n {
     text-decoration: underline;
+}
+
+/* Only works when they are direct children/parent */
+.color-code__m>.color-code__n,
+.color-code__n>.color-code__m {
+    text-decoration: underline line-through;
 }
 
 .color-code__o {
@@ -194,7 +211,8 @@ p {
     gap: 6px;
 }
 
-.item-card__property-group__row:last-of-type>p {
+.item-card__property-group__row:last-of-type>p,
+.item-card__property-group__row:last-of-type>a {
     margin: 0px;
 }
 
@@ -204,6 +222,7 @@ p {
 
 .item-card__property-group__value {
     word-break: break-word;
+    margin-bottom: 10px;
 }
 
 .item-card__property-group__multiline-value {
@@ -254,7 +273,7 @@ p {
     margin-bottom: 0px;
 }
 
-.item-card__property-group__recipe-key>p>span {
+.item-card__property-group__recipe-key>p>span:first-of-type {
     color: #ffffff50;
 }
 

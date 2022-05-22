@@ -151,6 +151,12 @@ p {
     position: relative;
 }
 
+#body__loading-text {
+    margin-bottom: 0px;
+    margin-top: 2rem;
+    font-weight: bold;
+}
+
 .item-card {
     border: 2px solid var(--border-color);
     margin: 2rem 0;

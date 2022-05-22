@@ -1,4 +1,7 @@
-const formatCodeRegex = /§([0-9a-z])/g
+const globalState = {}
+const DEBUG_VERBOSE = false;
+
+const formatCodeRegex = /§([0-9a-z])/g;
 
 const insertAndReplaceAt = (string, replacement, startIndex, endIndex) => {
     return string.substring(0, startIndex) + replacement + string.substring(endIndex);
@@ -9,8 +12,9 @@ const toTitleCase = (string) => {
 }
 
 const removeColorSymbols = (string) => {
-    if (string === undefined) {
-        return "UH OH"
+    if ((string === undefined) || string === null) {
+        console.warn("Tried to remove color symbols from an undefined or null string at " + removeColorSymbols(globalState.currentItem.name))
+        return ""
     }
     return string.replaceAll(formatCodeRegex, "");
 }
@@ -76,9 +80,16 @@ const recipeToKeys = (recipe) => {
     return ingredientsSet
 }
 
+
+// "itemName" should only be passed for debugging purposes
 const itemCardKeyValuePair = (key, value, isLink) => {
+    const _nullValue = (value === undefined) || (value === null);
+    if (_nullValue) {
+        console.warn(`The value for "${key}" is "${value}" in ${removeColorSymbols(globalState.currentItem.name)}`, (DEBUG_VERBOSE ? globalState.currentItem : ""))
+        value = "Unavailable"
+    }
     let _valueElement = ""
-    if (!isLink) {
+    if (!isLink || _nullValue) {
         _valueElement = `<p class="item-card__property-group__value">${value}</p>`
     } else {
         _valueElement = `<a class="item-card__property-group__value" href="${value}">${value}</a>`
@@ -91,19 +102,57 @@ const itemCardKeyValuePair = (key, value, isLink) => {
     `
 }
 
+const itemCardKeyValuePairNullable = (resource, key, onSuccess) => {
+    if (!((resource === null) || (resource === undefined))) {
+        return itemCardKeyValuePair(key, onSuccess(resource))
+    } else {
+        return ""
+    }
+}
+
 const itemCardResearchGroup = (item) => {
     if ("research" in item) {
         return `
             ${itemCardKeyValuePair("Key:", item.research.key)}
             ${itemCardKeyValuePair("ID:", item.research.id)}
             ${itemCardKeyValuePair("Name:", item.research.name)}
-            ${itemCardKeyValuePair("Cost:", item.research.cost)}
+            ${itemCardKeyValuePair("Cost:", item.research.cost + " Level" + (item.research.cost !== 1 ? "s" : ""))}
         `
     } else {
         return `
             <p>Couldn't find research for this item.</p>
         `
     }
+}
+
+
+// This is the catch-all for extra properties
+const itemCardExtraGroup = (item) => {
+    let extraPropertyGroupHTML = "";
+    let groupName = []
+    if ("energy" in item) {
+        groupName = "Energy";
+        extraPropertyGroupHTML += `
+            ${itemCardKeyValuePair("Type:", toTitleCase(item.energy.type))}
+            ${itemCardKeyValuePair("Capacity:", item.energy.capacity + " J")}
+            ${itemCardKeyValuePair("Rechargeable:", item.energy.rechargeable)}
+        `
+    } else if ("protection" in item) {
+        groupName = "Protections";
+        extraPropertyGroupHTML += `
+            ${itemCardKeyValuePair("Full set required:", item.protection.full_required)}
+            ${itemCardKeyValuePair("Key:", item.protection.key)}
+            ${itemCardKeyValuePair("Protects from:", toTitleCase(item.protection.protection_types.join(", ").replaceAll("_", " ")))}
+        `
+    } else {
+        return ""
+    }
+
+
+    return `
+        <h3 class="item-card__property-group__title">[ ${groupName} ]</h3>
+        ${extraPropertyGroupHTML}
+    `
 }
 
 const itemCardRecipeGrid = (recipe) => {
@@ -152,8 +201,13 @@ fetch("https://raw.githubusercontent.com/TheSilentPro/SlimefunScrapper/master/it
     .then((json => {
 
         let maxItems = json.length;
+        // maxItems = 1;
         for (let i = 0; i < maxItems; i++) {
             const item = json[i];
+            if (!("name" in item.recipe_type)) {
+                console.log(item)
+            }
+            globalState.currentItem = item;
             itemsList.push(removeColorSymbols(item.name).toLowerCase())
 
             document.getElementById("body").insertAdjacentHTML("beforeend", `
@@ -163,6 +217,9 @@ fetch("https://raw.githubusercontent.com/TheSilentPro/SlimefunScrapper/master/it
                         <h3 class="item-card__property-group__title">[ Information ]</h3>
                         ${itemCardKeyValuePair("ID:", item.id)}
                         ${itemCardKeyValuePair("Name:", parseColorSymbols(item.name))}
+                        ${itemCardKeyValuePairNullable(item.radioactivity, "Radioactivity ☢️:", (radioactivity) => {
+                            return radioactivity.level
+                        }, )}
                         ${itemCardKeyValuePair("Wiki:", item.wiki, true)}
                         ${itemCardKeyValuePair("Enchantable:", item.enchantable)}
                         ${itemCardKeyValuePair("Disenchantable:", item.disenchantable)}
@@ -188,8 +245,11 @@ fetch("https://raw.githubusercontent.com/TheSilentPro/SlimefunScrapper/master/it
                     <div class="item-card__property-group">
                         <h3 class="item-card__property-group__title">[ Recipe ]</h3>
                         ${itemCardRecipeGrid(item.recipe.ingredients)}
-                        ${itemCardKeyValuePair("Type:", item.recipe_type.key)}
+                        ${itemCardKeyValuePair("Recipe Type:", toTitleCase(item.recipe_type.key.replaceAll("_", " ").substring(9)))}
                         ${itemCardKeyValuePair("Produces:", item.recipe.output.amount)}
+                    </div>
+                    <div class="item-card__property-group">
+                        ${itemCardExtraGroup(item)}
                     </div>
                 </div>
             `)

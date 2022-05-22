@@ -30,7 +30,11 @@ const parseColorSymbols = (string) => {
         // format code, and puts the stuff after that into a span
         // with the corresponding classes, recursively
         const formatCode = string[matchedCodeIndex + 1];
-        return `${string.substring(0, matchedCodeIndex)}<span class="color-code__${formatCode} color-code">${parseColorSymbols(string.substring(matchedCodeIndex+2))}</span>`
+        let doNotReset = false;
+        if (formatCode in ["l", "o", "m", "n", "k"]) {
+            doNotReset = true;
+        }
+        return `${string.substring(0, matchedCodeIndex)}<span class="color-code__${formatCode}${doNotReset ? " color-code" : ""}">${parseColorSymbols(string.substring(matchedCodeIndex+2))}</span>`
     };
 }
 
@@ -204,9 +208,6 @@ fetch("https://raw.githubusercontent.com/TheSilentPro/SlimefunScrapper/master/it
         // maxItems = 1;
         for (let i = 0; i < maxItems; i++) {
             const item = json[i];
-            if (!("name" in item.recipe_type)) {
-                console.log(item)
-            }
             globalState.currentItem = item;
             itemsList.push(removeColorSymbols(item.name).toLowerCase())
 
@@ -245,7 +246,7 @@ fetch("https://raw.githubusercontent.com/TheSilentPro/SlimefunScrapper/master/it
                     <div class="item-card__property-group">
                         <h3 class="item-card__property-group__title">[ Recipe ]</h3>
                         ${itemCardRecipeGrid(item.recipe.ingredients)}
-                        ${itemCardKeyValuePair("Recipe Type:", toTitleCase(item.recipe_type.key.replaceAll("_", " ").substring(9)))}
+                        ${itemCardKeyValuePair("Recipe Type:", item.recipe_type.name)}
                         ${itemCardKeyValuePair("Produces:", item.recipe.output.amount)}
                     </div>
                     <div class="item-card__property-group">
@@ -259,6 +260,10 @@ fetch("https://raw.githubusercontent.com/TheSilentPro/SlimefunScrapper/master/it
     })).then(
         (totalItems) => {
             document.getElementById("total-items").textContent = totalItems;
+            document.getElementById("body__loading-text").textContent = "";
+        }, (error) => {
+            document.getElementById("body__loading-text").textContent = "There was an error loading the items. Please see console for details";
+            console.error(error)
         }
     );
 

@@ -36,28 +36,28 @@ const parseColorSymbols = (string) => {
 
 const getPotionName = (potion) => {
     let extendedOrUpgradedString = ""
-    if (potion.meta.base_potion_data.extended === true) {
+    if (potion.meta.base_potion_data.upgraded === true) {
         extendedOrUpgradedString += " II"
     } else if (potion.meta.base_potion_data.extended === true) {
         extendedOrUpgradedString += "( Extended)"
     }
-    return toTitleCase(`[${potion.type.replace("_", " ")} of ${potion.meta.base_potion_data.type}${extendedOrUpgradedString}]`)
+    return toTitleCase(`${potion.type.replace("_", " ")} of ${potion.meta.base_potion_data.type}${extendedOrUpgradedString}`)
 }
 
 
 const getIngredientName = (ingredient) => {
     // Prerequisite: 'ingredient' is not null
     if (!("meta" in ingredient)) {
-        return `[${toTitleCase(ingredient.type.replaceAll("_", " "))}]`;
+        return `${toTitleCase(ingredient.type.replaceAll("_", " "))}`;
         // No display name in meta means vanilla item with NBT data
         // So far, only potions have them. If there are more to be
-        // added int he future, this script will
+        // added in the future, this script will
         // log a message in console, but won't crash
     } else if (!("display_name" in ingredient.meta)) {
         if (ingredient.type === "POTION") {
             return getPotionName(ingredient);
         } else {
-            return `[${toTitleCase(ingredient.type.replaceAll("_", " "))}]`;
+            return `${toTitleCase(ingredient.type.replaceAll("_", " "))}`;
         }
     } else {
         return parseColorSymbols(ingredient.meta.display_name);
@@ -228,53 +228,59 @@ fetch("https://raw.githubusercontent.com/TheSilentPro/SlimefunScrapper/master/it
         for (let i = 0; i < maxItems; i++) {
             const item = json[i];
             globalState.currentItem = item;
-            itemsList.push(removeColorSymbols(item.name).toLowerCase())
 
-            document.getElementById("body").insertAdjacentHTML("beforeend", `
-                <div class="item-card" id="${removeColorSymbols(item.name).toLowerCase()}">
-                    <h2 class="item-card__title">${removeColorSymbols(item.name)}</h2>
-                    <div class="item-card__property-group">
-                        <h3 class="item-card__property-group__title">[ Information ]</h3>
-                        ${itemCardKeyValuePair("ID:", item.id)}
-                        ${itemCardKeyValuePair("Name:", parseColorSymbols(item.name))}
-                        ${itemCardKeyValuePairNullable(item.radioactivity, "Radioactivity ☢️:", (radioactivity) => {
-                            return radioactivity.level
-                        })}
-                        ${itemCardDescription(item.recipe.output)}
-                        ${itemCardKeyValuePair("Wiki:", item.wiki, true)}
-                        ${itemCardKeyValuePair("Enchantable:", item.enchantable)}
-                        ${itemCardKeyValuePair("Disenchantable:", item.disenchantable)}
-                        ${itemCardKeyValuePair("Workbench:", item.workbench)}
-                        ${itemCardKeyValuePair("Placeable:", item.placeable)}
+            try {
+                document.getElementById("body").insertAdjacentHTML("beforeend", `
+                    <div class="item-card" id="${removeColorSymbols(item.name).toLowerCase()}">
+                        <h2 class="item-card__title">${removeColorSymbols(item.name)}</h2>
+                        <div class="item-card__property-group">
+                            <h3 class="item-card__property-group__title">[ Information ]</h3>
+                            ${itemCardKeyValuePair("ID:", item.id)}
+                            ${itemCardKeyValuePair("Name:", parseColorSymbols(item.name))}
+                            ${itemCardKeyValuePairNullable(item.radioactivity, "Radioactivity ☢️:", (radioactivity) => {
+                                return radioactivity.level
+                            })}
+                            ${itemCardDescription(item.recipe.output)}
+                            ${itemCardKeyValuePair("Wiki:", item.wiki, true)}
+                            ${itemCardKeyValuePair("Enchantable:", item.enchantable)}
+                            ${itemCardKeyValuePair("Disenchantable:", item.disenchantable)}
+                            ${itemCardKeyValuePair("Workbench:", item.workbench)}
+                            ${itemCardKeyValuePair("Placeable:", item.placeable)}
+                        </div>
+                        <div class="item-card__property-group">
+                            <h3 class="item-card__property-group__title">[ Recipe ]</h3>
+                            ${itemCardRecipeGrid(item.recipe.ingredients)}
+                            ${itemCardKeyValuePair("Recipe Type:", item.recipe_type.name)}
+                            ${itemCardKeyValuePair("Produces:", item.recipe.output.amount)}
+                        </div>
+                        <div class="item-card__property-group">
+                            <h3 class="item-card__property-group__title">[ Research ]</h3>
+                            ${itemCardResearchGroup(item)}
+                        </div>
+                        <div class="item-card__property-group">
+                            <h3 class="item-card__property-group__title">[ Group ]</h3>
+                            ${itemCardKeyValuePair("Key:", item.group.key)}
+                            ${itemCardKeyValuePair("Name:", item.group.name)}
+                            ${itemCardKeyValuePair("Tier:", item.group.tier)}
+                        </div>
+                        <div class="item-card__property-group">
+                            <h3 class="item-card__property-group__title">[ Addon ]</h3>
+                            ${itemCardKeyValuePair("Name:", item.addon.name)}
+                            ${itemCardKeyValuePair("Version:", item.addon.version)}
+                            ${itemCardKeyValuePair("Bug Tracker:", item.addon.bug_tracker, true)}
+                        </div>
+                        ${itemCardExtraGroup(item)}
                     </div>
-                    <div class="item-card__property-group">
-                        <h3 class="item-card__property-group__title">[ Recipe ]</h3>
-                        ${itemCardRecipeGrid(item.recipe.ingredients)}
-                        ${itemCardKeyValuePair("Recipe Type:", item.recipe_type.name)}
-                        ${itemCardKeyValuePair("Produces:", item.recipe.output.amount)}
-                    </div>
-                    <div class="item-card__property-group">
-                        <h3 class="item-card__property-group__title">[ Research ]</h3>
-                        ${itemCardResearchGroup(item)}
-                    </div>
-                    <div class="item-card__property-group">
-                        <h3 class="item-card__property-group__title">[ Group ]</h3>
-                        ${itemCardKeyValuePair("Key:", item.group.key)}
-                        ${itemCardKeyValuePair("Name:", item.group.name)}
-                        ${itemCardKeyValuePair("Tier:", item.group.tier)}
-                    </div>
-                    <div class="item-card__property-group">
-                        <h3 class="item-card__property-group__title">[ Addon ]</h3>
-                        ${itemCardKeyValuePair("Name:", item.addon.name)}
-                        ${itemCardKeyValuePair("Version:", item.addon.version)}
-                        ${itemCardKeyValuePair("Bug Tracker:", item.addon.bug_tracker, true)}
-                    </div>
-                    ${itemCardExtraGroup(item)}
-                </div>
-            `)
+                `)
+                itemsList.push(removeColorSymbols(item.name).toLowerCase())
+            } catch (error) {
+                console.error(`An error has occurred when trying to render the card for ${removeColorSymbols(globalState.currentItem.name)}:\n`,
+                    error
+                )
+            }
         }
 
-        return maxItems;
+        return itemsList.length;
     })).then(
         (totalItems) => {
             document.getElementById("total-items").textContent = totalItems;

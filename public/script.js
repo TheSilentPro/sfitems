@@ -114,6 +114,29 @@ const itemCardKeyValuePairNullable = (resource, key, onSuccess) => {
     }
 }
 
+const itemCardDescription = (output) => {
+    if ("meta" in output) {
+        if ("lore" in output.meta) {
+            let valueLines = ""
+            let _beginning = true;
+            output.meta.lore.forEach(value => {
+                // Trims off whitespace in the beginning of the lore
+                valueLines += ((value !== "") || !_beginning) ? (function() {
+                    _beginning = false;
+                    return `<p>${parseColorSymbols(value)}</p>`
+                })() : ""
+            });
+            return `
+                <p class="item-card__property-group__multiline-key">Description:</p>
+                <div class="item-card__property-group__multiline-value">
+                    ${valueLines}
+                </div>
+            `
+        }
+    }
+    return ""
+}
+
 const itemCardResearchGroup = (item) => {
     if ("research" in item) {
         return `
@@ -185,13 +208,11 @@ const itemCardRecipeGrid = (recipe) => {
     }
 
     return `
-        <div>
-            <div class="item-card__property-group__recipe-grid">
-                ${recipeGridItems}
-            </div>
-            <div class="item-card__property-group__recipe-key">
-                ${keyStrings}
-            </div>
+        <div class="item-card__property-group__recipe-grid">
+            ${recipeGridItems}
+        </div>
+        <div class="item-card__property-group__recipe-key">
+            ${keyStrings}
         </div>
     `;
 }
@@ -205,7 +226,7 @@ fetch("https://raw.githubusercontent.com/TheSilentPro/SlimefunScrapper/master/it
     .then((json => {
 
         let maxItems = json.length;
-        // maxItems = 1;
+        // maxItems = 10;
         for (let i = 0; i < maxItems; i++) {
             const item = json[i];
             globalState.currentItem = item;
@@ -220,7 +241,8 @@ fetch("https://raw.githubusercontent.com/TheSilentPro/SlimefunScrapper/master/it
                         ${itemCardKeyValuePair("Name:", parseColorSymbols(item.name))}
                         ${itemCardKeyValuePairNullable(item.radioactivity, "Radioactivity ☢️:", (radioactivity) => {
                             return radioactivity.level
-                        }, )}
+                        })}
+                        ${itemCardDescription(item.recipe.output)}
                         ${itemCardKeyValuePair("Wiki:", item.wiki, true)}
                         ${itemCardKeyValuePair("Enchantable:", item.enchantable)}
                         ${itemCardKeyValuePair("Disenchantable:", item.disenchantable)}

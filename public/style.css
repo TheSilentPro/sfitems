@@ -206,6 +206,25 @@ p {
     word-break: break-word;
 }
 
+.item-card__property-group__multiline-value {
+    margin-bottom: 10px;
+    border-left: 2px solid var(--border-color);
+    padding-left: 0.7rem;
+    margin-left: 1rem;
+    display: grid;
+    grid-template-columns: auto;
+    grid-auto-rows: 1fr;
+}
+
+.item-card__property-group__multiline-key {
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.item-card__property-group__multiline-value>p {
+    margin-bottom: 0px;
+}
+
 .item-card__property-group__recipe-grid {
     display: inline-grid;
     grid-template-columns: repeat(3, 2rem);

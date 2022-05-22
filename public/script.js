@@ -30,11 +30,7 @@ const parseColorSymbols = (string) => {
         // format code, and puts the stuff after that into a span
         // with the corresponding classes, recursively
         const formatCode = string[matchedCodeIndex + 1];
-        let doNotReset = false;
-        if (formatCode in ["l", "o", "m", "n", "k"]) {
-            doNotReset = true;
-        }
-        return `${string.substring(0, matchedCodeIndex)}<span class="color-code__${formatCode}${doNotReset ? " color-code" : ""}">${parseColorSymbols(string.substring(matchedCodeIndex+2))}</span>`
+        return `${string.substring(0, matchedCodeIndex)}<span class="color-code__${formatCode}">${parseColorSymbols(string.substring(matchedCodeIndex+2))}</span>`
     };
 }
 
@@ -64,7 +60,7 @@ const getIngredientName = (ingredient) => {
             return `[${toTitleCase(ingredient.type.replaceAll("_", " "))}]`;
         }
     } else {
-        return removeColorSymbols(ingredient.meta.display_name);
+        return parseColorSymbols(ingredient.meta.display_name);
     }
 }
 
@@ -177,8 +173,10 @@ const itemCardExtraGroup = (item) => {
 
 
     return `
-        <h3 class="item-card__property-group__title">[ ${groupName} ]</h3>
-        ${extraPropertyGroupHTML}
+        <div class="item-card__property-group">
+            <h3 class="item-card__property-group__title">[ ${groupName} ]</h3>
+            ${extraPropertyGroupHTML}
+        </div>
     `
 }
 
@@ -250,6 +248,12 @@ fetch("https://raw.githubusercontent.com/TheSilentPro/SlimefunScrapper/master/it
                         ${itemCardKeyValuePair("Placeable:", item.placeable)}
                     </div>
                     <div class="item-card__property-group">
+                        <h3 class="item-card__property-group__title">[ Recipe ]</h3>
+                        ${itemCardRecipeGrid(item.recipe.ingredients)}
+                        ${itemCardKeyValuePair("Recipe Type:", item.recipe_type.name)}
+                        ${itemCardKeyValuePair("Produces:", item.recipe.output.amount)}
+                    </div>
+                    <div class="item-card__property-group">
                         <h3 class="item-card__property-group__title">[ Research ]</h3>
                         ${itemCardResearchGroup(item)}
                     </div>
@@ -265,15 +269,7 @@ fetch("https://raw.githubusercontent.com/TheSilentPro/SlimefunScrapper/master/it
                         ${itemCardKeyValuePair("Version:", item.addon.version)}
                         ${itemCardKeyValuePair("Bug Tracker:", item.addon.bug_tracker, true)}
                     </div>
-                    <div class="item-card__property-group">
-                        <h3 class="item-card__property-group__title">[ Recipe ]</h3>
-                        ${itemCardRecipeGrid(item.recipe.ingredients)}
-                        ${itemCardKeyValuePair("Recipe Type:", item.recipe_type.name)}
-                        ${itemCardKeyValuePair("Produces:", item.recipe.output.amount)}
-                    </div>
-                    <div class="item-card__property-group">
-                        ${itemCardExtraGroup(item)}
-                    </div>
+                    ${itemCardExtraGroup(item)}
                 </div>
             `)
         }

@@ -278,7 +278,7 @@ p {
 }
 
 .item-card__settings-overflow-container {
-    max-height: 160px;
+    max-height: 120px;
     overflow-y: auto;
 }
 

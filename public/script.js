@@ -303,20 +303,7 @@ fetch("https://raw.githubusercontent.com/TheSilentPro/SlimefunScrapper/master/it
             document.getElementById("body__loading-text").textContent = "There was an error loading the items. Please see console for details";
             console.error(error)
         }
-    )
-    // .then(
-    //     () => {   
-    //         [...document.getElementsByClassName("item-card__settings-overflow-container")].forEach(element => {
-    //             if (parseInt(window.getComputedStyle(element).height.replace("px", "")) > 80) {
-    //                 element.classList.add("active");
-    //                 element.addEventListener("click", () => {
-    //                     element.classList.toggle("active");
-    //                 })
-    //             }
-    //         });
-    //     }
-    // )
-    ;
+    );
 
 document.getElementById("search-bar").addEventListener("submit", (event) => {
     event.preventDefault();

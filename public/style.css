@@ -277,6 +277,11 @@ p {
     color: #ffffff50;
 }
 
+.item-card__settings-overflow-container {
+    max-height: 120px;
+    overflow-y: auto;
+}
+
 .back-to-top-button__wrapper {
     position: sticky;
     display: inline;

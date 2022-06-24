@@ -1,7 +1,8 @@
-const globalState = {}
+const GLOBAL_STATE = {}
 const DEBUG_VERBOSE = false;
 
 const formatCodeRegex = /§([0-9a-z])/g;
+
 
 const insertAndReplaceAt = (string, replacement, startIndex, endIndex) => {
     return string.substring(0, startIndex) + replacement + string.substring(endIndex);
@@ -13,7 +14,7 @@ const toTitleCase = (string) => {
 
 const removeColorSymbols = (string) => {
     if ((string === undefined) || string === null) {
-        console.warn("Tried to remove color symbols from an undefined or null string at " + removeColorSymbols(globalState.currentItem.name))
+        console.warn("Tried to remove color symbols from an undefined or null string at " + removeColorSymbols(GLOBAL_STATE.currentItem.name))
         return ""
     }
     return string.replaceAll(formatCodeRegex, "");
@@ -85,7 +86,7 @@ const recipeToKeys = (recipe) => {
 const itemCardKeyValuePair = (key, value, isLink) => {
     const _nullValue = (value === undefined) || (value === null);
     if (_nullValue) {
-        console.warn(`The value for "${key}" is "${value}" in ${removeColorSymbols(globalState.currentItem.name)}`, (DEBUG_VERBOSE ? globalState.currentItem : ""))
+        console.warn(`The value for "${key}" is "${value}" in ${removeColorSymbols(GLOBAL_STATE.currentItem.name)}`, (DEBUG_VERBOSE ? GLOBAL_STATE.currentItem : ""))
         value = "Unavailable"
     }
     let _valueElement = ""
@@ -151,33 +152,46 @@ const itemCardResearchGroup = (item) => {
 
 // This is the catch-all for extra properties
 const itemCardExtraGroup = (item) => {
-    let extraPropertyGroupHTML = "";
-    let groupName = []
+    let extraGroupsHTML = "";
+
     if ("energy" in item) {
-        groupName = "Energy";
-        extraPropertyGroupHTML += `
-            ${itemCardKeyValuePair("Type:", toTitleCase(item.energy.type))}
-            ${itemCardKeyValuePair("Capacity:", item.energy.capacity + " J")}
-            ${itemCardKeyValuePair("Rechargeable:", item.energy.rechargeable)}
+        extraGroupsHTML += `
+            <div class="item-card__property-group">
+                <h3 class="item-card__property-group__title">[ Energy ]</h3>
+                ${itemCardKeyValuePair("Type:", toTitleCase(item.energy.type))}
+                ${itemCardKeyValuePair("Capacity:", item.energy.capacity + " J")}
+                ${itemCardKeyValuePair("Rechargeable:", item.energy.rechargeable)}
+            </div>
         `
-    } else if ("protection" in item) {
-        groupName = "Protections";
-        extraPropertyGroupHTML += `
-            ${itemCardKeyValuePair("Full set required:", item.protection.full_required)}
-            ${itemCardKeyValuePair("Key:", item.protection.key)}
-            ${itemCardKeyValuePair("Protects from:", toTitleCase(item.protection.protection_types.join(", ").replaceAll("_", " ")))}
+    } 
+    
+    if ("protection" in item) {
+        extraGroupsHTML += `
+            <div class="item-card__property-group">
+                <h3 class="item-card__property-group__title">[ Protection ]</h3>
+                ${itemCardKeyValuePair("Full set required:", item.protection.full_required)}
+                ${itemCardKeyValuePair("Key:", item.protection.key)}
+                ${itemCardKeyValuePair("Protects from:", toTitleCase(item.protection.protection_types.join(", ").replaceAll("_", " ")))}
+            </div>
         `
-    } else {
-        return ""
     }
 
+    if ("settings" in item) {
+        let settingsProperties = [];
+        for (const setting of item.settings) {
+            settingsProperties.push(itemCardKeyValuePair(setting.key + ":", setting.default_value));
+        }
+        extraGroupsHTML += `
+            <div class="item-card__property-group">
+                <h3 class="item-card__property-group__title">[ Default Settings ]</h3>
+                <div class="item-card__settings-overflow-container">
+                    ${settingsProperties.sort().join("")}
+                </div>
+            </div>
+        `
+    }
 
-    return `
-        <div class="item-card__property-group">
-            <h3 class="item-card__property-group__title">[ ${groupName} ]</h3>
-            ${extraPropertyGroupHTML}
-        </div>
-    `
+    return extraGroupsHTML;
 }
 
 const itemCardRecipeGrid = (recipe) => {
@@ -227,7 +241,7 @@ fetch("https://raw.githubusercontent.com/TheSilentPro/SlimefunScrapper/master/it
         // maxItems = 10;
         for (let i = 0; i < maxItems; i++) {
             const item = json[i];
-            globalState.currentItem = item;
+            GLOBAL_STATE.currentItem = item;
 
             try {
                 document.getElementById("body").insertAdjacentHTML("beforeend", `
@@ -274,7 +288,7 @@ fetch("https://raw.githubusercontent.com/TheSilentPro/SlimefunScrapper/master/it
                 `)
                 itemsList.push(removeColorSymbols(item.name).toLowerCase())
             } catch (error) {
-                console.error(`An error has occurred when trying to render the card for ${removeColorSymbols(globalState.currentItem.name)}:\n`,
+                console.error(`An error has occurred when trying to render the card for ${removeColorSymbols(GLOBAL_STATE.currentItem.name)}:\n`,
                     error
                 )
             }
@@ -289,7 +303,20 @@ fetch("https://raw.githubusercontent.com/TheSilentPro/SlimefunScrapper/master/it
             document.getElementById("body__loading-text").textContent = "There was an error loading the items. Please see console for details";
             console.error(error)
         }
-    );
+    )
+    // .then(
+    //     () => {   
+    //         [...document.getElementsByClassName("item-card__settings-overflow-container")].forEach(element => {
+    //             if (parseInt(window.getComputedStyle(element).height.replace("px", "")) > 80) {
+    //                 element.classList.add("active");
+    //                 element.addEventListener("click", () => {
+    //                     element.classList.toggle("active");
+    //                 })
+    //             }
+    //         });
+    //     }
+    // )
+    ;
 
 document.getElementById("search-bar").addEventListener("submit", (event) => {
     event.preventDefault();
@@ -300,8 +327,8 @@ document.getElementById("search-bar").addEventListener("submit", (event) => {
     } else {
         alert(`Couldn't find a Slimefun item with the name "${event.target.children[0].value}"`)
     }
-})
+});
 
 document.getElementById("back-to-top-button").addEventListener("click", () => {
     window.scrollTo(0, 0);
-})
+});
